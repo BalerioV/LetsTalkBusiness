@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Let's Talk Business</title>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    .container { display: flex; justify-content: space-around; margin-bottom: 20px; }
+    .card { border: 1px solid #ccc; padding: 10px; border-radius: 10px; width: 45%; }
+    .results { margin-top: 20px; }
+    .result { margin-bottom: 10px; }
+    .bold { font-weight: bold; }
+    .red { color: red; font-weight: bold; }
+    .button-group button { margin: 0 5px; }
+  </style>
+</head>
+<body>
+  <h1>Let's Talk Business</h1>
+
+  <div id="game">
+    <button id="startBtn" onclick="startGame()">Inizia Partita</button>
+    <button id="resetBtn" onclick="resetGame()" style="display:none;">Reset</button>
+    <div id="initialDraw" class="container"></div>
+
+    <div id="riskSection" style="display:none;">
+      <p>Quanto volete rischiare?</p>
+      <div class="button-group">
+        <button onclick="chooseRisk(1)">1</button>
+        <button onclick="chooseRisk(2)">2</button>
+        <button onclick="chooseRisk(3)">3</button>
+        <button onclick="chooseRisk(4)">4</button>
+      </div>
+    </div>
+
+    <div id="wheelResults" class="container"></div>
+  </div>
+
+  <script>
+    const oggetti = ["saponetta","forchetta","cannuccia","spazzolino","calzino","sedia","accendino","corda","ombrello","secchio","tazza","cuscino","tastiera","pennarello","occhiali","bottiglia","scarpa","tovagliolo","telecomando","candela",
+      "tappeto elastico","macchina da cucire","frigobar","proiettore","phon","stampante","frullatore","tenda da campeggio","radiolina","robot aspirapolvere"];
+
+    const caratteristiche = ["gigante","minuscolo","incandescente","appiccicoso","fragile","luminoso","puzzolente","fluttuante","vibrante","trasparente","antico","nuovo","gonfiabile","robotico","gelatinoso","rumoroso","con ruote","multicolore","misterioso","di cartone"];
+
+    const target = ["anziani","bambini","donne","uomini","studenti","nerd","sportivi","musicisti","cuochi","manager","famiglie","artisti","viaggiatori","ciclisti","collezionisti","gamer","ecologisti","lettori","nomadi","amici"];
+
+    const bonus = ["Budget illimitato","Prodotto virale","Team di esperti","Influencer gratuito","App dedicata inclusa","Distribuzione globale","Sponsorizzato da celebrità","Produzione automatizzata","Design innovativo","Accordo con Amazon","Venduto nei supermercati","Supporto TV nazionale","Packaging ecosostenibile","Partnership strategica","Recensioni perfette","Brevetto esclusivo","Esente da tasse","Spedizione gratuita mondiale","Crowdfunding da record","Top nei trend social"];
+
+    const imprevisti = ["Siete rimasti in meno di 1000 persone sulla Terra","Parli una lingua sconosciuta","Il tuo prodotto prende fuoco dopo l'acquisto","È illegale in molti paesi","La popolazione è cieca","Tutti vivono sott’acqua","Il tempo scorre all’indietro","C’è solo elettricità un’ora al giorno","Nessuno usa internet","La gravità cambia ogni ora"];
+
+    const ruota = [
+      "Pesca carta bonus",
+      "Pesca carta imprevisto",
+      "Pesca carta caratteristica",
+      "Scambia target con altro giocatore",
+      "Aggiungi un secondo oggetto",
+      "Hai solo 30 secondi",
+      "Il tuo oggetto è per animali",
+      "Scambia oggetto con un altro giocatore"
+    ];
+
+    let giocatori = [{}, {}];
+
+    function randomFrom(array) {
+      return array[Math.floor(Math.random() * array.length)];
+    }
+
+    function startGame() {
+      giocatori = [
+        {
+          oggetti: [randomFrom(oggetti)],
+          caratteristiche: [randomFrom(caratteristiche)],
+          target: randomFrom(target),
+          ruotaRisultati: []
+        },
+        {
+          oggetti: [randomFrom(oggetti)],
+          caratteristiche: [randomFrom(caratteristiche)],
+          target: randomFrom(target),
+          ruotaRisultati: []
+        }
+      ];
+      document.getElementById("riskSection").style.display = "block";
+      document.getElementById("resetBtn").style.display = "inline-block";
+      document.getElementById("startBtn").style.display = "none";
+      renderInitialDraw();
+    }
+
+    function resetGame() {
+      document.getElementById("initialDraw").innerHTML = "";
+      document.getElementById("wheelResults").innerHTML = "";
+      document.getElementById("riskSection").style.display = "none";
+      document.getElementById("resetBtn").style.display = "none";
+      document.getElementById("startBtn").style.display = "inline-block";
+    }
+
+    function renderInitialDraw() {
+      const div = document.getElementById("initialDraw");
+      div.innerHTML = giocatori.map((g, i) => `
+        <div class="card">
+          <div><span class="bold">Giocatore ${i + 1}</span></div>
+          <div>Oggetto: ${g.oggetti.join(", ")}</div>
+          <div>Caratteristica: ${g.caratteristiche.join(", ")}</div>
+          <div>Target: ${g.target}</div>
+        </div>
+      `).join("");
+    }
+
+    function chooseRisk(rischio) {
+      giocatori.forEach(g => g.ruotaRisultati = []);
+      for (let i = 0; i < rischio; i++) {
+        for (let turno = 0; turno < 2; turno++) {
+          const idx = turno;
+          const risultato = randomFrom(ruota);
+          let testo = risultato;
+
+          if (risultato === "Pesca carta bonus") {
+            testo += ": " + randomFrom(bonus);
+          } else if (risultato === "Pesca carta imprevisto") {
+            testo += ": " + randomFrom(imprevisti);
+          } else if (risultato === "Pesca carta caratteristica") {
+            const nuova = randomFrom(caratteristiche);
+            giocatori[idx].caratteristiche.push(nuova);
+            testo += ": " + nuova;
+          } else if (risultato === "Scambia target con altro giocatore") {
+            const temp = giocatori[0].target;
+            giocatori[0].target = giocatori[1].target;
+            giocatori[1].target = temp;
+            testo += " (Scambiato)";
+          } else if (risultato === "Aggiungi un secondo oggetto") {
+            const nuovo = randomFrom(oggetti);
+            giocatori[idx].oggetti.push(nuovo);
+            testo += ": " + nuovo;
+          } else if (risultato === "Hai solo 30 secondi") {
+            testo = "<span class='red'>HAI SOLO 30 SECONDI</span>";
+          } else if (risultato === "Il tuo oggetto è per animali") {
+            testo += " (Adatto agli animali)";
+          } else if (risultato === "Scambia oggetto con un altro giocatore") {
+            const temp = giocatori[0].oggetti;
+            giocatori[0].oggetti = giocatori[1].oggetti;
+            giocatori[1].oggetti = temp;
+            testo += " (Scambiato)";
+          }
+          giocatori[idx].ruotaRisultati.push(testo);
+        }
+      }
+      renderInitialDraw();
+      renderWheelResults();
+    }
+
+    function renderWheelResults() {
+      const div = document.getElementById("wheelResults");
+      div.innerHTML = giocatori.map((g, i) => `
+        <div class="card">
+          <div><span class="bold">Giocatore ${i + 1}</span></div>
+          ${g.ruotaRisultati.map(r => `<div class="result">${r}</div>`).join("")}
+        </div>
+      `).join("");
+    }
+  </script>
+</body>
+</html>
